@@ -140,4 +140,17 @@ function get_task_list(){
 function padDateTime(dt) {
     return dt < 10 ? "0"+dt : dt;
 }
-get_task_list();
+if(token != "YOUR_API_TOKEN"){
+	get_task_list();
+}
+else{
+	
+	var error_card = new UI.Card({
+  title: 'ERROR',
+	subtitle: 'API Token not configured, open settings in Pebble app and enter API token!'
+	
+});
+	error_card.show();
+
+}
+
