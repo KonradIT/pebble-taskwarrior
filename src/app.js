@@ -48,6 +48,7 @@ function get_task_list(){
 						if(e.sectionIndex == 1){							
 							 var selected_short_id = e.itemIndex;
 							 var selected_obj=obj[selected_short_id];
+							 var timeline_uuid = selected_obj.uuid;
 							 var priority = "";
 							 var due = "";
 							 var tags = "";
@@ -61,6 +62,20 @@ function get_task_list(){
                  var mm = padDateTime(dateParsed.getMonth()+1);
 								 var date = mm + "/" + dd;
 								 due = "Due: " + date + "\n";
+								 
+								 //add to timeline
+								 Pebble.getTimelineToken(function (token) {
+								 	console.log('My timeline token is ' + token);
+									var myToken = token;
+									 
+									 var xhr_timeline = new XMLHttpRequest();
+									 xhr_timeline.open("PUT", "https://timeline-api.getpebble.com/v1/user/pins/" + timeline_uuid, true);
+ 								   xhr_timeline.setRequestHeader("Content-Type", "application/json");
+ 								   xhr_timeline.setRequestHeader("X-User-Token", myToken);
+									 var timeline_pin_content = '{"id": "' + timeline_uuid + '","time": "' + selected_obj.due + '","layout": { "shortTitle": "' + selected_obj.description + '","type":"genericPin"}}';
+									 xhr_timeline.send(timeline_pin_content);
+								 });
+
 						   }
 							 if(typeof selected_obj.tags !== "undefined"){
 								 tags = "Tags: " + selected_obj.tags + "\n";
@@ -151,6 +166,18 @@ else{
 	
 });
 	error_card.show();
+
+    Pebble.addEventListener("showConfiguration", function() {
+    console.log("showing configuration");
+        //change this url to yours
+        Pebble.openURL('http://assets.getpebble.com.s3-website-us-east-1.amazonaws.com/pebble-js/configurable.html');
+        });
+        Pebble.addEventListener("webviewclosed", function(e) {
+        console.log("configuration closed");
+        // webview closed
+        var options = JSON.parse(decodeURIComponent(e.response));
+        console.log("Options = " + JSON.stringify(options));
+        }); 
 
 }
 
