@@ -7,8 +7,13 @@
 var UI = require('ui');
 var Vibe = require('ui/vibe');
 var Voice = require('ui/voice');
-//TEMPORARY: put your Taskwarrior Inthe.am Token here (settings > API token), I need to do the configuration activity for entering your custom token.
-var token = "YOUR_API_TOKEN";
+var Settings = require('settings');
+if(typeof Settings.option('apitoken') == "undefined"){
+	var token = "YOUR_API_TOKEN";
+}
+else{
+	var token = Settings.option('apitoken');
+}
 function get_task_list(){
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", "https://inthe.am/api/v2/tasks/", true);
@@ -155,6 +160,7 @@ function get_task_list(){
 function padDateTime(dt) {
     return dt < 10 ? "0"+dt : dt;
 }
+//token = Settings.data('apitoken');
 if(token != "YOUR_API_TOKEN"){
 	get_task_list();
 }
@@ -167,17 +173,21 @@ else{
 });
 	error_card.show();
 
-    Pebble.addEventListener("showConfiguration", function() {
-    console.log("showing configuration");
-        //change this url to yours
-        Pebble.openURL('http://assets.getpebble.com.s3-website-us-east-1.amazonaws.com/pebble-js/configurable.html');
-        });
-        Pebble.addEventListener("webviewclosed", function(e) {
-        console.log("configuration closed");
-        // webview closed
-        var options = JSON.parse(decodeURIComponent(e.response));
-        console.log("Options = " + JSON.stringify(options));
-        }); 
+  Settings.config(
+  { url: 'http://konradit.github.io/pebble-dev/taskwarrior.html' },
+  function(e) {
+    console.log('closed configurable');
 
+    // Show the parsed response
+    var json_raw = JSON.parse(JSON.stringify(e.options));
+		var api_key = json_raw.apikey;
+		Settings.option('apitoken', api_key);
+		console.log("This test: " + e.options);
+    // Show the raw response if parsing failed
+    if (e.failed) {
+      console.log(e.response);
+    }
+  }
+);
 }
 
