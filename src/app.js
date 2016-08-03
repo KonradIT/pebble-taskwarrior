@@ -8,12 +8,44 @@ var UI = require('ui');
 var Vibe = require('ui/vibe');
 var Voice = require('ui/voice');
 var Settings = require('settings');
-if(typeof Settings.option('apitoken') == "undefined"){
-	var token = "YOUR_API_TOKEN";
+
+var token = "";
+if (typeof Settings.option('apitoken') == "undefined"){
+	token = "YOUR_API_TOKEN";
+		
+	var error_card = new UI.Card({
+  title: 'ERROR',
+	subtitle: 'API Token not configured, open settings in Pebble app and enter API token!'
+	
+});
+	error_card.show();
+
+ 
 }
 else{
-	var token = Settings.option('apitoken');
+	token = Settings.option('apitoken');
+	get_task_list();
 }
+
+ Settings.config(
+  { url: 'http://konradit.github.io/pebble-dev/taskwarrior.html' },
+  function(e) {
+    console.log('closed configurable');
+
+    // Show the parsed response
+    var json_raw = JSON.parse(JSON.stringify(e.options));
+		var api_key = json_raw.apikey;
+		Settings.option('apitoken', api_key);
+		token=api_key;
+		get_task_list();
+
+    // Show the raw response if parsing failed
+    if (e.failed) {
+      console.log(e.response);
+    }
+  }
+);
+
 function get_task_list(){
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", "https://inthe.am/api/v2/tasks/", true);
@@ -161,33 +193,4 @@ function padDateTime(dt) {
     return dt < 10 ? "0"+dt : dt;
 }
 //token = Settings.data('apitoken');
-if(token != "YOUR_API_TOKEN"){
-	get_task_list();
-}
-else{
-	
-	var error_card = new UI.Card({
-  title: 'ERROR',
-	subtitle: 'API Token not configured, open settings in Pebble app and enter API token!'
-	
-});
-	error_card.show();
-
-  Settings.config(
-  { url: 'http://konradit.github.io/pebble-dev/taskwarrior.html' },
-  function(e) {
-    console.log('closed configurable');
-
-    // Show the parsed response
-    var json_raw = JSON.parse(JSON.stringify(e.options));
-		var api_key = json_raw.apikey;
-		Settings.option('apitoken', api_key);
-		console.log("This test: " + e.options);
-    // Show the raw response if parsing failed
-    if (e.failed) {
-      console.log(e.response);
-    }
-  }
-);
-}
 
